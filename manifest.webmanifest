@@ -1,0 +1,26 @@
+{
+  "name": "薛湘怡工作台",
+  "short_name": "薛湘怡工作台",
+  "description": "薛湘怡工作台：拍照识别食物热量，记录每日饮食",
+  "lang": "zh-CN",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ece8e1",
+  "theme_color": "#7e9b8f",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
