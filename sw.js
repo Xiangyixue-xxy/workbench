@@ -1,6 +1,6 @@
 // 薛湘怡工作台 —— Service Worker（离线缓存应用外壳）
-const CACHE = "calorie-workbench-v15";
-const SHELL = ["index.html", "manifest.webmanifest", "icon.svg", "icon.png"];
+const CACHE = "calorie-workbench-v17";
+const SHELL = ["index.html", "manifest.webmanifest", "icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

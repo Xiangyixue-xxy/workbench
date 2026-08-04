@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="薛湘怡工作台" />
 <link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.png" type="image/png" sizes="512x512" />
 <link rel="apple-touch-icon" href="icon.png" />
 <style>
   :root{
@@ -642,16 +643,26 @@
 <!-- 全局设置 -->
 <div class="mask" id="setMask"><div class="modal"><div class="mhead"><h3>设置</h3><button class="x" data-close>×</button></div><div class="mbody">
   <div class="field"><label>每日热量目标 (kcal)</label><input type="number" id="setGoal" value="2000" /></div>
+  <div class="field"><label>使用者姓名</label><input type="text" id="setOwner" placeholder="薛湘怡" /></div>
   <div class="field"><label>API 基地址（兼容 OpenAI 接口）</label><input type="text" id="setBase" placeholder="https://api.openai.com/v1" />
     <div class="hint">OpenAI: https://api.openai.com/v1 ｜ 通义千问: https://dashscope.aliyuncs.com/compatible-mode/v1 ｜ 豆包: https://ark.cn-beijing.volces.com/api/v3</div></div>
   <div class="field"><label>API Key</label><input type="password" id="setKey" placeholder="sk-..." /><div class="hint">仅保存在本机浏览器，调用时直发你填写的服务商。</div></div>
   <div class="field"><label>视觉模型名称</label><input type="text" id="setModel" placeholder="gpt-4o-mini / qwen-vl-max / ..." /></div>
   <button class="btn primary" id="saveSet" style="width:100%">保存设置</button>
   <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><button class="btn ghost" id="clearData" style="width:100%;background:#fdecea;color:var(--danger)">清空全部本地数据</button></div>
+  <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    <div class="label" style="margin-bottom:8px">数据备份与恢复</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn ghost" id="exportData" style="flex:1">⬇ 导出数据</button>
+      <button class="btn ghost" id="importData" style="flex:1">⬆ 导入数据</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+    <div class="hint" style="margin-top:8px">换手机或重装应用前先「导出数据」备份；需要时「导入数据」即可恢复（经期、打卡、待办等全部保留）。</div>
+  </div>
 </div></div></div>
 
 <!-- 桌面：习惯编辑 弹窗 -->
-<div class="mask" id="deskMask"><div class="modal"><div class="mhead"><h3 id="deskTitle">新习惯</h3><button class="x" data-close>×</button></div><div class="mbody">
+<div class="mask" id="deskMask"><div class="modal"><div class="mhead"><h3 id="habitTitle">新习惯</h3><button class="x" data-close>×</button></div><div class="mbody">
   <div class="field"><label>名称</label><input type="text" id="habitName" placeholder="如：喝水 1L / 学英语 / 运动" /></div>
   <div class="field"><label>图标 emoji</label><input type="text" id="habitIcon" value="⭐" maxlength="2" style="width:80px" /></div>
   <div class="field"><label>每日目标次数</label><input type="number" id="habitTarget" value="1" min="1" /></div>
@@ -685,8 +696,19 @@
 /* ============ 存储 ============ */
 const STORE_KEY="calorieTracker.v1";
 let DB=load();
-function defaultDB(){ return {goalKcal:2000, api:{baseUrl:"",key:"",model:""}, days:{}, accounts:{tx:[]}, period:{cycleLen:28,periodLen:5,days:[],logs:{},showOvu:true}, english:{known:{},wrong:{},order:null,cardIdx:0,onlyNew:false,pho:{}}, desktop:{todos:[],habits:[],checks:{},_seeded:false}, water:{goal:1500,days:{}}, notes:[], weather:{city:"北京",data:null,ts:0} }; }
-function load(){ try{const r=JSON.parse(localStorage.getItem(STORE_KEY)); if(r) return Object.assign(defaultDB(), r);}catch(e){}
+function defaultDB(){ return {owner:"薛湘怡",goalKcal:2000, api:{baseUrl:"",key:"",model:""}, days:{}, accounts:{tx:[]}, period:{cycleLen:28,periodLen:5,days:[],logs:{},showOvu:true}, english:{known:{},wrong:{},order:null,cardIdx:0,onlyNew:false,pho:{}}, desktop:{todos:[],habits:[],checks:{},_seeded:false}, water:{goal:1500,days:{}}, notes:[], weather:{city:"北京",data:null,ts:0} }; }
+function mergeDB(def, r){
+  if(!r || typeof r!=="object") return def;
+  for(const k in def){
+    if(!(k in r)) continue;
+    const dv=def[k], rv=r[k];
+    if(dv && typeof dv==="object" && !Array.isArray(dv) && rv && typeof rv==="object" && !Array.isArray(rv)){ mergeDB(dv, rv); }
+    else def[k]=rv;
+  }
+  for(const k in r){ if(!(k in def)) def[k]=r[k]; }
+  return def;
+}
+function load(){ try{const r=JSON.parse(localStorage.getItem(STORE_KEY)); if(r) return mergeDB(defaultDB(), r);}catch(e){}
   return defaultDB(); }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }
 function todayStr(){ const d=new Date(); return fmt(d); }
@@ -6314,9 +6336,12 @@ el("newsRefresh").onclick=()=>{ renderNews(true); toast("正在刷新…"); };
 /* ===================================================================
    全局设置
 =================================================================== */
-el("settingsBtn").onclick=()=>{ el("setGoal").value=DB.goalKcal; el("setBase").value=DB.api.baseUrl; el("setKey").value=DB.api.key; el("setModel").value=DB.api.model; showMask("setMask"); };
-el("saveSet").onclick=()=>{ DB.goalKcal=Number(el("setGoal").value)||2000; DB.api.baseUrl=el("setBase").value.trim(); DB.api.key=el("setKey").value.trim(); DB.api.model=el("setModel").value.trim(); save(); closeMask("setMask"); if(currentView==="diet") renderDiet(); toast("设置已保存"); };
+el("settingsBtn").onclick=()=>{ el("setGoal").value=DB.goalKcal; el("setOwner").value=DB.owner||"薛湘怡"; el("setBase").value=DB.api.baseUrl; el("setKey").value=DB.api.key; el("setModel").value=DB.api.model; showMask("setMask"); };
+el("saveSet").onclick=()=>{ DB.goalKcal=Number(el("setGoal").value)||2000; DB.owner=(el("setOwner").value||"").trim()||"薛湘怡"; DB.api.baseUrl=el("setBase").value.trim(); DB.api.key=el("setKey").value.trim(); DB.api.model=el("setModel").value.trim(); save(); closeMask("setMask"); paintHero(); if(currentView==="diet") renderDiet(); toast("设置已保存"); };
 el("clearData").onclick=()=>{ if(confirm("确定清空全部本地数据？不可恢复。")){ localStorage.removeItem(STORE_KEY); DB=load(); dietDate=todayStr(); showView(currentView); closeMask("setMask"); toast("已清空"); } };
+el("exportData").onclick=()=>{ try{ const blob=new Blob([JSON.stringify(DB,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="工作台数据-"+todayStr()+".json"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast("已导出数据文件"); }catch(e){ toast("导出失败"); } };
+el("importData").onclick=()=>{ el("importFile").click(); };
+el("importFile").onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const r=JSON.parse(rd.result); if(!r||typeof r!=="object") throw 0; DB=mergeDB(defaultDB(), r); save(); closeMask("setMask"); toast("数据已导入，正在刷新…"); setTimeout(()=>location.reload(),700); }catch(err){ toast("导入失败：文件格式不正确"); } }; rd.readAsText(f); e.target.value=""; };
 
 /* ============ Service Worker ============ */
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
@@ -6494,7 +6519,7 @@ function paintHero(){
   el("deskDate").textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${wd}`;
   const li=lunarDayInfo(d.getFullYear(),d.getMonth()+1,d.getDate());
   el("deskLunar").innerHTML=li.festival?`${li.lunar} <span class="fest-pill">${li.festival}</span>`:li.lunar;
-  el("deskTitle").innerHTML=`${greetWord(d.getHours())} · Hi，薛湘怡 <span class="wave">👋</span>`;
+  el("deskTitle").innerHTML=`${greetWord(d.getHours())} · Hi，${DB.owner||"薛湘怡"} <span class="wave">👋</span>`;
   const q=QUOTES[dayIndex()%QUOTES.length];
   el("deskQuote").innerHTML=`<span class="qm">💡</span>${escapeHtml(q)}`;
   refreshHeroStats();
@@ -6576,8 +6601,8 @@ function renderHabits(){
 function checkHabit(id){ const t=todayChecks(); t[id]=(t[id]||0)+1; save(); renderHabits(); }
 function minusHabit(id){ const t=todayChecks(); if(t[id]>0){ t[id]--; save(); renderHabits(); } }
 function editHabit(id){ const h=DB.desktop.habits.find(x=>x.id===id); if(!h) return; habitEditId=id;
-  el("deskTitle").textContent="编辑习惯"; el("habitName").value=h.name; el("habitIcon").value=h.icon||"⭐"; el("habitTarget").value=h.target; el("habitUnit").value=h.unit||""; el("habitDel").style.display="block"; showMask("deskMask"); }
-el("habitAdd").onclick=()=>{ habitEditId=null; el("deskTitle").textContent="新习惯"; el("habitName").value=""; el("habitIcon").value="⭐"; el("habitTarget").value=1; el("habitUnit").value=""; el("habitDel").style.display="none"; showMask("deskMask"); };
+  el("habitTitle").textContent="编辑习惯"; el("habitName").value=h.name; el("habitIcon").value=h.icon||"⭐"; el("habitTarget").value=h.target; el("habitUnit").value=h.unit||""; el("habitDel").style.display="block"; showMask("deskMask"); }
+el("habitAdd").onclick=()=>{ habitEditId=null; el("habitTitle").textContent="新习惯"; el("habitName").value=""; el("habitIcon").value="⭐"; el("habitTarget").value=1; el("habitUnit").value=""; el("habitDel").style.display="none"; showMask("deskMask"); };
 el("habitSave").onclick=()=>{ const name=el("habitName").value.trim(); if(!name){ toast("请填写名称"); return; }
   const data={name, icon:el("habitIcon").value.trim()||"⭐", target:Math.max(1,Number(el("habitTarget").value)||1), unit:el("habitUnit").value.trim()};
   if(habitEditId){ const h=DB.desktop.habits.find(x=>x.id===habitEditId); if(h) Object.assign(h,data); } else { DB.desktop.habits.push(Object.assign({id:uid()},data)); }
