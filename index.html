@@ -27,10 +27,8 @@
   .sidebar{width:210px;background:var(--panel);border-right:1px solid var(--line);
     padding:20px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;flex:none}
   .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;margin-bottom:22px;padding:0 6px}
-  .brand .dot{width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
-  .side-wx{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:12px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;cursor:pointer;transition:background .2s}
-  .side-wx:hover{background:#d6e3dc}
-  .side-wx .ic{font-size:18px}
+  .brand .app-logo{width:26px;height:26px;border-radius:7px;object-fit:cover;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .brand .brand-txt{white-space:nowrap}
   .nav{display:flex;flex-direction:column;gap:6px}
   .nav button{display:flex;align-items:center;gap:11px;border:none;background:none;text-align:left;
     padding:12px 12px;border-radius:12px;font-size:15px;color:var(--sub);cursor:pointer;font-weight:600}
@@ -384,14 +382,12 @@
   @media(max-width:760px){
     .app{flex-direction:row}
     .sidebar{width:72px;padding:14px 4px;align-items:center;border-right:1px solid var(--line);border-bottom:none}
-    .brand{display:none}
+    .brand{display:flex;justify-content:center;padding:0;margin-bottom:14px} .brand .brand-txt{display:none} .brand .app-logo{width:38px;height:38px;border-radius:11px}
     .nav{flex-direction:column;gap:8px;align-items:stretch;width:100%}
     .nav button{flex-direction:column;gap:2px;justify-content:center;padding:9px 1px;font-size:10px;text-align:center;white-space:nowrap;line-height:1.2}
     .nav button .ic{width:auto;font-size:20px}
     .side-foot{margin-top:auto;flex-direction:column;width:100%;gap:8px}
     .side-foot button{flex-direction:column;gap:2px;justify-content:center;padding:9px 1px;text-align:center;white-space:nowrap;font-size:10px}
-    .side-wx{flex-direction:column;gap:2px;padding:8px 2px;margin-bottom:10px;font-size:10px;text-align:center}
-    .side-wx .ic{font-size:18px}
     .content{padding:14px;flex:1;min-width:0}
   }
 
@@ -418,11 +414,7 @@
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><span class="dot"></span>薛湘怡工作台</div>
-    <div class="side-wx" id="sideWx" title="查看天气">
-      <span class="ic" id="sideWxIc">🌡️</span>
-      <span class="side-wx-txt" id="sideWxTxt">天气</span>
-    </div>
+    <div class="brand"><img id="appLogo" class="app-logo" src="icon.png" alt="工作台图标"/><span class="brand-txt">薛湘怡工作台</span></div>
     <nav class="nav">
       <button data-view="desktop" class="active"><span class="ic">🏠</span><span class="lbl">首页</span></button>
       <button data-view="diet"><span class="ic">🥗</span><span class="lbl">饮食热量</span></button>
@@ -431,7 +423,7 @@
       <button data-view="expr"><span class="ic">💬</span><span class="lbl">表达</span></button>
       <button data-view="news"><span class="ic">📚</span><span class="lbl">考公时政</span></button>
       <button data-view="notes"><span class="ic">💭</span><span class="lbl">随感</span></button>
-      <button data-view="weather"><span class="ic">🌤️</span><span class="lbl">天气</span></button>
+      <button data-view="weather"><span class="ic" id="navWxIc">🌤️</span><span class="lbl">天气</span></button>
       <button data-view="period"><span class="ic">🌸</span><span class="lbl">女性健康</span></button>
     </nav>
     <div class="side-foot">
@@ -650,6 +642,19 @@
   <div class="field"><label>视觉模型名称</label><input type="text" id="setModel" placeholder="gpt-4o-mini / qwen-vl-max / ..." /></div>
   <button class="btn primary" id="saveSet" style="width:100%">保存设置</button>
   <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><button class="btn ghost" id="clearData" style="width:100%;background:#fdecea;color:var(--danger)">清空全部本地数据</button></div>
+  <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    <div class="label" style="margin-bottom:8px">应用图标</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <img id="iconPreview" src="icon.png" style="width:64px;height:64px;border-radius:16px;border:1px solid var(--line);object-fit:cover" />
+      <div style="font-size:12px;color:var(--sub)">当前图标预览</div>
+    </div>
+    <div id="iconPresets" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
+    <div style="display:flex;gap:10px">
+      <label class="btn ghost" style="flex:1;cursor:pointer;text-align:center">📷 上传图片<input type="file" id="iconUpload" accept="image/*" style="display:none" /></label>
+      <button class="btn ghost" id="iconDownload" style="flex:1">⬇ 下载用于主屏</button>
+    </div>
+    <div class="hint" style="margin-top:8px">选择或上传后，应用内图标（左上角）立即更新。要让手机主屏也更新，点「下载用于主屏」得到 icon.png，替换仓库里的同名文件并重新「添加到主屏幕」。</div>
+  </div>
   <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
     <div class="label" style="margin-bottom:8px">数据备份与恢复</div>
     <div style="display:flex;gap:10px">
@@ -6336,12 +6341,20 @@ el("newsRefresh").onclick=()=>{ renderNews(true); toast("正在刷新…"); };
 /* ===================================================================
    全局设置
 =================================================================== */
-el("settingsBtn").onclick=()=>{ el("setGoal").value=DB.goalKcal; el("setOwner").value=DB.owner||"薛湘怡"; el("setBase").value=DB.api.baseUrl; el("setKey").value=DB.api.key; el("setModel").value=DB.api.model; showMask("setMask"); };
+el("settingsBtn").onclick=()=>{ el("setGoal").value=DB.goalKcal; el("setOwner").value=DB.owner||"薛湘怡"; el("setBase").value=DB.api.baseUrl; el("setKey").value=DB.api.key; el("setModel").value=DB.api.model; el("iconPreview").src=DB.icon||"icon.png"; renderIconPresets(); showMask("setMask"); };
 el("saveSet").onclick=()=>{ DB.goalKcal=Number(el("setGoal").value)||2000; DB.owner=(el("setOwner").value||"").trim()||"薛湘怡"; DB.api.baseUrl=el("setBase").value.trim(); DB.api.key=el("setKey").value.trim(); DB.api.model=el("setModel").value.trim(); save(); closeMask("setMask"); paintHero(); if(currentView==="diet") renderDiet(); toast("设置已保存"); };
 el("clearData").onclick=()=>{ if(confirm("确定清空全部本地数据？不可恢复。")){ localStorage.removeItem(STORE_KEY); DB=load(); dietDate=todayStr(); showView(currentView); closeMask("setMask"); toast("已清空"); } };
 el("exportData").onclick=()=>{ try{ const blob=new Blob([JSON.stringify(DB,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="工作台数据-"+todayStr()+".json"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast("已导出数据文件"); }catch(e){ toast("导出失败"); } };
 el("importData").onclick=()=>{ el("importFile").click(); };
 el("importFile").onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const r=JSON.parse(rd.result); if(!r||typeof r!=="object") throw 0; DB=mergeDB(defaultDB(), r); save(); closeMask("setMask"); toast("数据已导入，正在刷新…"); setTimeout(()=>location.reload(),700); }catch(err){ toast("导入失败：文件格式不正确"); } }; rd.readAsText(f); e.target.value=""; };
+/* ---- 应用图标自定义 ---- */
+function makeIcon(emoji,bg,size){ size=size||256; const c=document.createElement("canvas"); c.width=c.height=size; const x=c.getContext("2d"); x.fillStyle=bg; x.fillRect(0,0,size,size); x.font=Math.floor(size*0.58)+"px serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(emoji,size/2,size/2+size*0.03); return c.toDataURL("image/png"); }
+const ICON_PRESETS=[ {e:"👩",b:"#e8d9c5"}, {e:"🌸",b:"#f0d5db"}, {e:"🌿",b:"#cfe0d6"}, {e:"⭐",b:"#e3dcef"}, {e:"🌷",b:"#f3e6cf"}, {e:"🐱",b:"#dfe7ef"} ];
+function setAppIcon(dataUrl){ DB.icon=dataUrl; save(); const fav=document.querySelector('link[rel="icon"]'); if(fav) fav.href=dataUrl; const al=document.querySelector('link[rel="apple-touch-icon"]'); if(al) al.href=dataUrl; el("appLogo").src=dataUrl; el("iconPreview").src=dataUrl; }
+function renderIconPresets(){ const box=el("iconPresets"); box.innerHTML=ICON_PRESETS.map((p,i)=>`<button class="icon-opt" data-i="${i}" style="width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:${p.b};font-size:24px;cursor:pointer;padding:0">${p.e}</button>`).join("")+`<button class="icon-opt" data-i="girl" style="width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:#efe7d8;cursor:pointer;overflow:hidden;padding:0"><img src="icon.png" style="width:100%;height:100%;object-fit:cover"></button>`;
+  box.querySelectorAll(".icon-opt").forEach(b=>b.onclick=()=>{ const i=b.dataset.i; const url=(i==="girl")?"icon.png":makeIcon(ICON_PRESETS[i].e,ICON_PRESETS[i].b); setAppIcon(url); toast("已更新应用内图标"); }); }
+el("iconUpload").onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ const img=new Image(); img.onload=()=>{ const s=Math.min(img.width,img.height); const c=document.createElement("canvas"); c.width=c.height=256; const cx=c.getContext("2d"); cx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,256,256); setAppIcon(c.toDataURL("image/png")); toast("已上传为应用图标"); }; img.src=rd.result; }; rd.readAsDataURL(f); e.target.value=""; };
+el("iconDownload").onclick=()=>{ const src=DB.icon||"icon.png"; const img=new Image(); img.onload=()=>{ const c=document.createElement("canvas"); c.width=c.height=512; const x=c.getContext("2d"); x.drawImage(img,0,0,512,512); c.toBlob(b=>{ const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download="icon.png"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); toast("已下载 icon.png，替换仓库后重加主屏"); }); }; img.src=src; };
 
 /* ============ Service Worker ============ */
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
@@ -6745,14 +6758,10 @@ function wxFillCity(){
   sel.innerHTML=Object.keys(WX_CITIES).map(c=>`<option value="${c}" ${c===DB.weather.city?"selected":""}>${c}</option>`).join("");
   sel.onchange=()=>{ DB.weather.city=sel.value; save(); loadWeather(true); };
 }
-function paintSideWx(){
-  const d=DB.weather.data;
-  if(d&&d.cur){ el("sideWxIc").textContent=d.cur.emoji; el("sideWxTxt").textContent=`${Math.round(d.cur.temp)}°`; }
-  else { el("sideWxIc").textContent="🌡️"; el("sideWxTxt").textContent="天气"; }
-}
 function renderWeather(d){
   const wd=["周日","周一","周二","周三","周四","周五","周六"];
   const now=d.cur;
+  const navIc=el("navWxIc"); if(navIc) navIc.textContent=now.emoji;
   el("wxNow").innerHTML=`<div class="wx-emoji">${now.emoji}</div><div><div class="wx-big">${Math.round(now.temp)}°</div></div>
     <div class="wx-meta"><div class="wx-cond">${DB.weather.city} · ${now.cond}</div>
       <div class="wx-sub">体感 ${Math.round(now.feel)}° · 湿度 ${now.hum}% · 风 ${now.wind}km/h</div>
@@ -6764,7 +6773,6 @@ function renderWeather(d){
     const lab=`${dt.getMonth()+1}/${dt.getDate()} ${wd[dt.getDay()]}`;
     return `<div class="wx-day"><div class="d">${lab}</div><div class="e">${e}</div><div class="t">${Math.round(x.hi)}°<small>/${Math.round(x.lo)}°</small></div></div>`;
   }).join("");
-  paintSideWx();
 }
 function loadWeather(force){
   wxFillCity();
@@ -6778,13 +6786,12 @@ function loadWeather(force){
     const days=j.daily.time.map((date,i)=>({date,code:j.daily.weather_code[i],hi:j.daily.temperature_2m_max[i],lo:j.daily.temperature_2m_min[i]}));
     const d={cur:{temp:c.temperature_2m,feel:c.apparent_temperature,hum:c.relative_humidity_2m,wind:c.wind_speed_10m,cond,emoji,code:c.weather_code},hi:j.daily.temperature_2m_max[0],lo:j.daily.temperature_2m_min[0],days};
     DB.weather.data=d; DB.weather.ts=Date.now(); save(); renderWeather(d);
-  }).catch(e=>{ el("wxNow").innerHTML=`<div class="wx-err">天气获取失败，请检查网络后点「刷新」。</div>`; paintSideWx(); });
+  }).catch(e=>{ el("wxNow").innerHTML=`<div class="wx-err">天气获取失败，请检查网络后点「刷新」。</div>`; });
 }
 el("wxRefresh").onclick=()=>loadWeather(true);
-el("sideWx").onclick=()=>showView("weather");
-paintSideWx();
 
 /* ============ 启动 ============ */
+if(DB.icon){ const _fav=document.querySelector('link[rel="icon"]'); if(_fav) _fav.href=DB.icon; const _al=document.querySelector('link[rel="apple-touch-icon"]'); if(_al) _al.href=DB.icon; if(el("appLogo")) el("appLogo").src=DB.icon; }
 showView("desktop");
 loadWeather();
 </script>
